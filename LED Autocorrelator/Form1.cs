@@ -44,7 +44,7 @@ namespace LED_Autocorrelator
         private const int PI_FALSE = 0;
         private double defaultMotorSpeed = 25; // mm/s
         // SCOPE
-        private string scopeName = "USB0::0x0AAD::0x01D6::107904::INSTR";//"USB0::0x0AAD::0x01D6::107415::INSTR";
+        private string scopeName = "USB0::0x0AAD::0x01D6::107415::INSTR";//"USB0::0x0AAD::0x01D6::107415::INSTR";
         IMessageBasedSession io;
         private double timeBase = 1e-7;
         private double voltsPerDiv = 100e-3;
@@ -118,22 +118,15 @@ namespace LED_Autocorrelator
         {
             try
             {
-                //Theta_iTextBox.Text = Settings.Default.Theta_i.ToString();
-                //Theta_fTextBox.Text = Settings.Default.Theta_f.ToString();
-                //T3TextBox.Text = Settings.Default.T3Coeff.ToString();
-                //T2TextBox.Text = Settings.Default.T2Coeff.ToString();
-                //TTextBox.Text = Settings.Default.TCoeff.ToString();
-                //ConstTextBox.Text = Settings.Default.ConstCoeff.ToString();
-                //SetEnergyTextBox.Text = Settings.Default.SetEnergy.ToString();
-                //GainTextBox.Text = Settings.Default.Gain.ToString();
-                //TolerenceTextBox.Text = Settings.Default.Tolerence.ToString();
-                //EnergyThresholdTextBox.Text = Settings.Default.EnergyThreshold.ToString();
-                //AvgOverTextBox.Text = Settings.Default.AvgOver.ToString();
-                //StartRunningTimeBox.Value = Settings.Default.StartTime;
-                //StopRunningTimeBox.Value = Settings.Default.StopTime;
-                //HistoryLengthTextBox.Text = Settings.Default.HistoryLength.ToString();
-                //StartupAngleTextBox.Text = Settings.Default.StartupAngle.ToString();
-                //AutoStartStopCheckBox.Checked = Settings.Default.AutoTurnOn;
+                timeBase = Settings.Default.timeBase;
+                voltsPerDiv = Settings.Default.voltsPerDivisionChannel1;
+                setTimeBaseNumericUpDown.Value = (decimal)timeBase;
+                voltsPerDivNumericUpDown.Value = (decimal)voltsPerDiv;
+                motorStartPositionNumericUpDown.Value = Settings.Default.motorStartPosition;
+                motorEndPositionNumericUpDown.Value = Settings.Default.motorEndPosition;
+                noScanPointsNumericUpDown.Value = Settings.Default.noScanPoints;
+                fitGaussianCheckBox.Checked = Settings.Default.fitGaussian;
+                LogMessage("Last user settings applied successfully.");
             }
             catch
             {
@@ -309,7 +302,7 @@ namespace LED_Autocorrelator
         {
             ushort vendorId = 0x0AAD;
             ushort productId = 0x01D6;
-            string serial = "107904"; //"107415";  // Optional; pass null or an empty string if not required
+            string serial = "107415";//  // "107415"   // Optional; pass null or an empty string if not required
 
             string visaResource = VisaHelper.FindVisaResource(vendorId, productId, serial);
 
@@ -936,7 +929,15 @@ namespace LED_Autocorrelator
                             double[] temp_voltages = new double[(int)(averageOverEachMeasurementNumericUpDown.Value)];
                             for (int j = 0; j < (int)(averageOverEachMeasurementNumericUpDown.Value); j++)
                             {
-                                double voltage_j = GetMeanVoltageFromScopeTrace();
+                                double voltage_j;
+                                if (useMaxVoltageInScopeTraceRadioButton.Checked) 
+                                {
+                                    voltage_j = GetMaxVoltageFromScopeTrace();
+                                }
+                                else
+                                {
+                                    voltage_j = GetMeanVoltageFromScopeTrace();
+                                }
                                 temp_voltages[j] = voltage_j;
                             }
                             double voltage = temp_voltages.Average();
@@ -1690,6 +1691,16 @@ namespace LED_Autocorrelator
             }
             return Tuple.Create(adjustedDelay, unit);
         }
+
+        private void UpdateTimeStepLabel()
+        {
+            double timeStep = (((double)motorEndPositionNumericUpDown.Value - (double)motorStartPositionNumericUpDown.Value) / (double)noScanPointsNumericUpDown.Value) * 2e-3 / 3e8; // Convert to seconds
+            Tuple<double, string> timeStepTuple = GetSIDelayWithUnits(timeStep);
+            double adjustedTimeStep = timeStepTuple.Item1;
+            string unit = timeStepTuple.Item2;
+            adjustedTimeStep = Math.Round(adjustedTimeStep, 2);
+            timeStepLabel.Text = $"Time step: {adjustedTimeStep:F3} {unit}";
+        }
         private void UpdateDelayLabel()
         {
             double delay = 2.0 * 1e-3 * (double)((motorEndPositionNumericUpDown.Value - motorStartPositionNumericUpDown.Value)) / (double)(3e8);
@@ -1706,11 +1717,17 @@ namespace LED_Autocorrelator
         private void motorStartPositionNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             UpdateDelayLabel();
+            UpdateTimeStepLabel();
+            Settings.Default.motorStartPosition = (decimal)motorStartPositionNumericUpDown.Value;
+            Properties.Settings.Default.Save();
         }
 
         private void motorEndPositionNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             UpdateDelayLabel();
+            UpdateTimeStepLabel();
+            Settings.Default.motorEndPosition = (decimal)motorEndPositionNumericUpDown.Value;
+            Properties.Settings.Default.Save();
         }
 
         private void disableMotorButton_Click(object sender, EventArgs e)
@@ -1931,9 +1948,11 @@ namespace LED_Autocorrelator
 
             }
         }
-        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        private void setTimeBaseNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             SetUserTimeBase();
+            Settings.Default.timeBase = (double)setTimeBaseNumericUpDown.Value;
+            Properties.Settings.Default.Save();
         }
 
         private void SetUserVoltsPerDiv()
@@ -1966,6 +1985,8 @@ namespace LED_Autocorrelator
         private void voltsPerDivNumericUpDown_ValueChanged(object sender, EventArgs e)
         {
             SetUserVoltsPerDiv();
+            Settings.Default.voltsPerDivisionChannel1 = (double)voltsPerDivNumericUpDown.Value;
+            Properties.Settings.Default.Save();
         }
 
         private void voltageOffsetNumericUpDown_ValueChanged(object sender, EventArgs e)
@@ -2028,6 +2049,29 @@ namespace LED_Autocorrelator
             {
                 LogMessage($"Motor position = {GetMotorPosition()} mm");
             }
+        }
+
+        private void noScanPointsNumericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            UpdateTimeStepLabel();
+            Settings.Default.noScanPoints = (int)noScanPointsNumericUpDown.Value;
+            Properties.Settings.Default.Save();
+        }
+
+        private void fitGaussianCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            Settings.Default.fitGaussian = fitGaussianCheckBox.Checked;
+            Properties.Settings.Default.Save();
+        }
+
+        private void useMaxVoltageInScopeTraceRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            useMeanVoltageInScopeTraceRadioButton.Checked = !useMaxVoltageInScopeTraceRadioButton.Checked;
+        }
+
+        private void useMinVoltageInScopeTraceRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            useMaxVoltageInScopeTraceRadioButton.Checked = !useMeanVoltageInScopeTraceRadioButton.Checked;
         }
     }
 

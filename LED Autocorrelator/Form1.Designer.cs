@@ -29,10 +29,13 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea5 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend5 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea6 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend6 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.panel2 = new System.Windows.Forms.Panel();
             this.connectToScopeButton = new System.Windows.Forms.Button();
             this.enableMotorButton = new System.Windows.Forms.Button();
@@ -53,15 +56,18 @@
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.userGuideToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.chart2 = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.fitParametersGroupBox = new System.Windows.Forms.GroupBox();
             this.fitGaussianCheckBox = new System.Windows.Forms.CheckBox();
             this.pulseDurationsFileNameTextBox = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.savePulseDurationCheckBox = new System.Windows.Forms.CheckBox();
             this.pulseDurationLabel = new System.Windows.Forms.Label();
-            this.noScanPointsNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.scanGroupBox = new System.Windows.Forms.GroupBox();
+            this.averageOverEachMeasurementNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.AvgEachMeasurementOverLabel = new System.Windows.Forms.Label();
             this.timeStepLabel = new System.Windows.Forms.Label();
+            this.noScanPointsNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.optionsForVoltageExtractionForTraceDropDown = new System.Windows.Forms.ComboBox();
             this.motorSpeedNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.motorSpeedLabel = new System.Windows.Forms.Label();
@@ -93,9 +99,8 @@
             this.BasicScanBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.saveLocationFolderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
             this.panel3 = new System.Windows.Forms.Panel();
-            this.AvgEachMeasurementOverLabel = new System.Windows.Forms.Label();
+            this.triggeringLabel = new System.Windows.Forms.Label();
             this.getMotorPositionButton = new System.Windows.Forms.Button();
-            this.averageOverEachMeasurementNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.voltLabel = new System.Windows.Forms.Label();
             this.trigLevelNumericDropDown = new System.Windows.Forms.NumericUpDown();
             this.triggerLevelLabel = new System.Windows.Forms.Label();
@@ -113,16 +118,19 @@
             this.motorCommandsLabel = new System.Windows.Forms.Label();
             this.manuaMoveMotorButton = new System.Windows.Forms.Button();
             this.moveMotorNumericUpDown = new System.Windows.Forms.NumericUpDown();
-            this.button1 = new System.Windows.Forms.Button();
             this.notificationTextBox = new System.Windows.Forms.TextBox();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.useTimebaseInVoltageAcquisitionCheckBox = new System.Windows.Forms.CheckBox();
+            this.useMaxVoltageInScopeTraceRadioButton = new System.Windows.Forms.RadioButton();
+            this.useMeanVoltageInScopeTraceRadioButton = new System.Windows.Forms.RadioButton();
             this.panel2.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.chart2)).BeginInit();
             this.fitParametersGroupBox.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.noScanPointsNumericUpDown)).BeginInit();
             this.scanGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.averageOverEachMeasurementNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.noScanPointsNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.motorSpeedNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.timeBetweenStepsNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numberOfRunsNumericUpDown)).BeginInit();
@@ -130,7 +138,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.motorStartPositionNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
             this.panel3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.averageOverEachMeasurementNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trigLevelNumericDropDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.voltageOffsetNumericUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.voltsPerDivNumericUpDown)).BeginInit();
@@ -246,7 +253,7 @@
             // 
             this.ExitButton.BackColor = System.Drawing.Color.IndianRed;
             this.ExitButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.ExitButton.Location = new System.Drawing.Point(824, 588);
+            this.ExitButton.Location = new System.Drawing.Point(830, 789);
             this.ExitButton.Name = "ExitButton";
             this.ExitButton.Size = new System.Drawing.Size(109, 24);
             this.ExitButton.TabIndex = 13;
@@ -257,11 +264,11 @@
             // MessageBox
             // 
             this.MessageBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.MessageBox.Location = new System.Drawing.Point(12, 290);
+            this.MessageBox.Location = new System.Drawing.Point(12, 434);
             this.MessageBox.Name = "MessageBox";
             this.MessageBox.ReadOnly = true;
             this.MessageBox.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.ForcedVertical;
-            this.MessageBox.Size = new System.Drawing.Size(336, 291);
+            this.MessageBox.Size = new System.Drawing.Size(336, 348);
             this.MessageBox.TabIndex = 14;
             this.MessageBox.Text = "";
             // 
@@ -269,7 +276,7 @@
             // 
             this.ClearMessageBoxButton.BackColor = System.Drawing.SystemColors.ControlLight;
             this.ClearMessageBoxButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.ClearMessageBoxButton.Location = new System.Drawing.Point(12, 587);
+            this.ClearMessageBoxButton.Location = new System.Drawing.Point(0, 788);
             this.ClearMessageBoxButton.Name = "ClearMessageBoxButton";
             this.ClearMessageBoxButton.Size = new System.Drawing.Size(174, 24);
             this.ClearMessageBoxButton.TabIndex = 15;
@@ -280,7 +287,7 @@
             // MessagesLabel
             // 
             this.MessagesLabel.AutoSize = true;
-            this.MessagesLabel.Location = new System.Drawing.Point(9, 274);
+            this.MessagesLabel.Location = new System.Drawing.Point(9, 414);
             this.MessagesLabel.Name = "MessagesLabel";
             this.MessagesLabel.Size = new System.Drawing.Size(58, 13);
             this.MessagesLabel.TabIndex = 16;
@@ -330,14 +337,30 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.panel1.Controls.Add(this.chart2);
             this.panel1.Controls.Add(this.fitParametersGroupBox);
-            this.panel1.Controls.Add(this.noScanPointsNumericUpDown);
             this.panel1.Controls.Add(this.scanGroupBox);
             this.panel1.Controls.Add(this.chart1);
             this.panel1.Location = new System.Drawing.Point(380, 46);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(553, 539);
+            this.panel1.Size = new System.Drawing.Size(553, 739);
             this.panel1.TabIndex = 18;
+            // 
+            // chart2
+            // 
+            chartArea5.Name = "ChartArea1";
+            this.chart2.ChartAreas.Add(chartArea5);
+            legend5.Name = "Legend1";
+            this.chart2.Legends.Add(legend5);
+            this.chart2.Location = new System.Drawing.Point(3, 270);
+            this.chart2.Name = "chart2";
+            series5.ChartArea = "ChartArea1";
+            series5.Legend = "Legend1";
+            series5.Name = "Series1";
+            this.chart2.Series.Add(series5);
+            this.chart2.Size = new System.Drawing.Size(547, 123);
+            this.chart2.TabIndex = 25;
+            this.chart2.Text = "chart2";
             // 
             // fitParametersGroupBox
             // 
@@ -346,7 +369,7 @@
             this.fitParametersGroupBox.Controls.Add(this.label1);
             this.fitParametersGroupBox.Controls.Add(this.savePulseDurationCheckBox);
             this.fitParametersGroupBox.Controls.Add(this.pulseDurationLabel);
-            this.fitParametersGroupBox.Location = new System.Drawing.Point(9, 474);
+            this.fitParametersGroupBox.Location = new System.Drawing.Point(9, 676);
             this.fitParametersGroupBox.Name = "fitParametersGroupBox";
             this.fitParametersGroupBox.Size = new System.Drawing.Size(534, 60);
             this.fitParametersGroupBox.TabIndex = 24;
@@ -365,6 +388,7 @@
             this.fitGaussianCheckBox.TabIndex = 26;
             this.fitGaussianCheckBox.Text = "?Fit gaussian";
             this.fitGaussianCheckBox.UseVisualStyleBackColor = true;
+            this.fitGaussianCheckBox.CheckedChanged += new System.EventHandler(this.fitGaussianCheckBox_CheckedChanged);
             // 
             // pulseDurationsFileNameTextBox
             // 
@@ -405,31 +429,12 @@
             this.pulseDurationLabel.TabIndex = 2;
             this.pulseDurationLabel.Text = "Pulse duration: ____";
             // 
-            // noScanPointsNumericUpDown
-            // 
-            this.noScanPointsNumericUpDown.Location = new System.Drawing.Point(481, 268);
-            this.noScanPointsNumericUpDown.Maximum = new decimal(new int[] {
-            100000,
-            0,
-            0,
-            0});
-            this.noScanPointsNumericUpDown.Minimum = new decimal(new int[] {
-            5,
-            0,
-            0,
-            0});
-            this.noScanPointsNumericUpDown.Name = "noScanPointsNumericUpDown";
-            this.noScanPointsNumericUpDown.Size = new System.Drawing.Size(54, 20);
-            this.noScanPointsNumericUpDown.TabIndex = 6;
-            this.noScanPointsNumericUpDown.Value = new decimal(new int[] {
-            5,
-            0,
-            0,
-            0});
-            // 
             // scanGroupBox
             // 
+            this.scanGroupBox.Controls.Add(this.averageOverEachMeasurementNumericUpDown);
+            this.scanGroupBox.Controls.Add(this.AvgEachMeasurementOverLabel);
             this.scanGroupBox.Controls.Add(this.timeStepLabel);
+            this.scanGroupBox.Controls.Add(this.noScanPointsNumericUpDown);
             this.scanGroupBox.Controls.Add(this.optionsForVoltageExtractionForTraceDropDown);
             this.scanGroupBox.Controls.Add(this.motorSpeedNumericUpDown);
             this.scanGroupBox.Controls.Add(this.motorSpeedLabel);
@@ -456,22 +461,76 @@
             this.scanGroupBox.Controls.Add(this.motorStartPositionNumericUpDown);
             this.scanGroupBox.Controls.Add(this.startScanPositionLabel);
             this.scanGroupBox.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.scanGroupBox.Location = new System.Drawing.Point(15, 254);
+            this.scanGroupBox.Location = new System.Drawing.Point(7, 456);
             this.scanGroupBox.Name = "scanGroupBox";
             this.scanGroupBox.Size = new System.Drawing.Size(528, 214);
             this.scanGroupBox.TabIndex = 1;
             this.scanGroupBox.TabStop = false;
             this.scanGroupBox.Text = "Scan Details";
             // 
+            // averageOverEachMeasurementNumericUpDown
+            // 
+            this.averageOverEachMeasurementNumericUpDown.Location = new System.Drawing.Point(85, 38);
+            this.averageOverEachMeasurementNumericUpDown.Maximum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            0});
+            this.averageOverEachMeasurementNumericUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.averageOverEachMeasurementNumericUpDown.Name = "averageOverEachMeasurementNumericUpDown";
+            this.averageOverEachMeasurementNumericUpDown.Size = new System.Drawing.Size(54, 20);
+            this.averageOverEachMeasurementNumericUpDown.TabIndex = 25;
+            this.averageOverEachMeasurementNumericUpDown.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // AvgEachMeasurementOverLabel
+            // 
+            this.AvgEachMeasurementOverLabel.AutoSize = true;
+            this.AvgEachMeasurementOverLabel.Location = new System.Drawing.Point(4, 40);
+            this.AvgEachMeasurementOverLabel.Name = "AvgEachMeasurementOverLabel";
+            this.AvgEachMeasurementOverLabel.Size = new System.Drawing.Size(76, 13);
+            this.AvgEachMeasurementOverLabel.TabIndex = 43;
+            this.AvgEachMeasurementOverLabel.Text = "Average Over:";
+            // 
             // timeStepLabel
             // 
             this.timeStepLabel.AutoSize = true;
             this.timeStepLabel.ForeColor = System.Drawing.Color.Red;
-            this.timeStepLabel.Location = new System.Drawing.Point(342, 112);
+            this.timeStepLabel.Location = new System.Drawing.Point(294, 112);
             this.timeStepLabel.Name = "timeStepLabel";
             this.timeStepLabel.Size = new System.Drawing.Size(89, 13);
             this.timeStepLabel.TabIndex = 28;
             this.timeStepLabel.Text = "Time step: _____";
+            // 
+            // noScanPointsNumericUpDown
+            // 
+            this.noScanPointsNumericUpDown.Location = new System.Drawing.Point(466, 14);
+            this.noScanPointsNumericUpDown.Maximum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            0});
+            this.noScanPointsNumericUpDown.Minimum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            this.noScanPointsNumericUpDown.Name = "noScanPointsNumericUpDown";
+            this.noScanPointsNumericUpDown.Size = new System.Drawing.Size(54, 20);
+            this.noScanPointsNumericUpDown.TabIndex = 6;
+            this.noScanPointsNumericUpDown.Value = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            this.noScanPointsNumericUpDown.ValueChanged += new System.EventHandler(this.noScanPointsNumericUpDown_ValueChanged);
             // 
             // optionsForVoltageExtractionForTraceDropDown
             // 
@@ -494,7 +553,7 @@
             0,
             0,
             65536});
-            this.motorSpeedNumericUpDown.Location = new System.Drawing.Point(342, 75);
+            this.motorSpeedNumericUpDown.Location = new System.Drawing.Point(338, 90);
             this.motorSpeedNumericUpDown.Maximum = new decimal(new int[] {
             30,
             0,
@@ -518,7 +577,7 @@
             // motorSpeedLabel
             // 
             this.motorSpeedLabel.AutoSize = true;
-            this.motorSpeedLabel.Location = new System.Drawing.Point(260, 77);
+            this.motorSpeedLabel.Location = new System.Drawing.Point(256, 92);
             this.motorSpeedLabel.Name = "motorSpeedLabel";
             this.motorSpeedLabel.Size = new System.Drawing.Size(76, 13);
             this.motorSpeedLabel.TabIndex = 24;
@@ -527,7 +586,7 @@
             // continuousStepsRadioButton
             // 
             this.continuousStepsRadioButton.AutoSize = true;
-            this.continuousStepsRadioButton.Location = new System.Drawing.Point(324, 50);
+            this.continuousStepsRadioButton.Location = new System.Drawing.Point(324, 64);
             this.continuousStepsRadioButton.Name = "continuousStepsRadioButton";
             this.continuousStepsRadioButton.Size = new System.Drawing.Size(112, 17);
             this.continuousStepsRadioButton.TabIndex = 23;
@@ -538,7 +597,7 @@
             // timeBetweenStepsLabel
             // 
             this.timeBetweenStepsLabel.AutoSize = true;
-            this.timeBetweenStepsLabel.Location = new System.Drawing.Point(10, 77);
+            this.timeBetweenStepsLabel.Location = new System.Drawing.Point(6, 92);
             this.timeBetweenStepsLabel.Name = "timeBetweenStepsLabel";
             this.timeBetweenStepsLabel.Size = new System.Drawing.Size(100, 13);
             this.timeBetweenStepsLabel.TabIndex = 22;
@@ -546,7 +605,7 @@
             // 
             // timeBetweenStepsNumericUpDown
             // 
-            this.timeBetweenStepsNumericUpDown.Location = new System.Drawing.Point(116, 74);
+            this.timeBetweenStepsNumericUpDown.Location = new System.Drawing.Point(112, 89);
             this.timeBetweenStepsNumericUpDown.Maximum = new decimal(new int[] {
             999999999,
             0,
@@ -560,7 +619,7 @@
             // 
             this.discreteStepsRadioButton.AutoSize = true;
             this.discreteStepsRadioButton.Checked = true;
-            this.discreteStepsRadioButton.Location = new System.Drawing.Point(58, 50);
+            this.discreteStepsRadioButton.Location = new System.Drawing.Point(58, 64);
             this.discreteStepsRadioButton.Name = "discreteStepsRadioButton";
             this.discreteStepsRadioButton.Size = new System.Drawing.Size(92, 17);
             this.discreteStepsRadioButton.TabIndex = 19;
@@ -612,7 +671,7 @@
             // stopBasicScanButton
             // 
             this.stopBasicScanButton.Enabled = false;
-            this.stopBasicScanButton.Location = new System.Drawing.Point(432, 184);
+            this.stopBasicScanButton.Location = new System.Drawing.Point(445, 184);
             this.stopBasicScanButton.Name = "stopBasicScanButton";
             this.stopBasicScanButton.Size = new System.Drawing.Size(75, 23);
             this.stopBasicScanButton.TabIndex = 14;
@@ -795,16 +854,16 @@
             // 
             // chart1
             // 
-            chartArea2.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea2);
-            legend2.Name = "Legend1";
-            this.chart1.Legends.Add(legend2);
+            chartArea6.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea6);
+            legend6.Name = "Legend1";
+            this.chart1.Legends.Add(legend6);
             this.chart1.Location = new System.Drawing.Point(3, 3);
             this.chart1.Name = "chart1";
-            series2.ChartArea = "ChartArea1";
-            series2.Legend = "Legend1";
-            series2.Name = "Series1";
-            this.chart1.Series.Add(series2);
+            series6.ChartArea = "ChartArea1";
+            series6.Legend = "Legend1";
+            series6.Name = "Series1";
+            this.chart1.Series.Add(series6);
             this.chart1.Size = new System.Drawing.Size(547, 245);
             this.chart1.TabIndex = 0;
             this.chart1.Text = "chart";
@@ -817,9 +876,10 @@
             // panel3
             // 
             this.panel3.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.panel3.Controls.Add(this.AvgEachMeasurementOverLabel);
+            this.panel3.Controls.Add(this.useMeanVoltageInScopeTraceRadioButton);
+            this.panel3.Controls.Add(this.useMaxVoltageInScopeTraceRadioButton);
+            this.panel3.Controls.Add(this.triggeringLabel);
             this.panel3.Controls.Add(this.getMotorPositionButton);
-            this.panel3.Controls.Add(this.averageOverEachMeasurementNumericUpDown);
             this.panel3.Controls.Add(this.voltLabel);
             this.panel3.Controls.Add(this.trigLevelNumericDropDown);
             this.panel3.Controls.Add(this.triggerLevelLabel);
@@ -839,21 +899,21 @@
             this.panel3.Controls.Add(this.moveMotorNumericUpDown);
             this.panel3.Location = new System.Drawing.Point(12, 109);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(346, 146);
+            this.panel3.Size = new System.Drawing.Size(346, 299);
             this.panel3.TabIndex = 26;
             // 
-            // AvgEachMeasurementOverLabel
+            // triggeringLabel
             // 
-            this.AvgEachMeasurementOverLabel.AutoSize = true;
-            this.AvgEachMeasurementOverLabel.Location = new System.Drawing.Point(182, 50);
-            this.AvgEachMeasurementOverLabel.Name = "AvgEachMeasurementOverLabel";
-            this.AvgEachMeasurementOverLabel.Size = new System.Drawing.Size(76, 13);
-            this.AvgEachMeasurementOverLabel.TabIndex = 43;
-            this.AvgEachMeasurementOverLabel.Text = "Average Over:";
+            this.triggeringLabel.AutoSize = true;
+            this.triggeringLabel.Location = new System.Drawing.Point(6, 144);
+            this.triggeringLabel.Name = "triggeringLabel";
+            this.triggeringLabel.Size = new System.Drawing.Size(57, 13);
+            this.triggeringLabel.TabIndex = 43;
+            this.triggeringLabel.Text = "Triggering:";
             // 
             // getMotorPositionButton
             // 
-            this.getMotorPositionButton.Location = new System.Drawing.Point(133, 3);
+            this.getMotorPositionButton.Location = new System.Drawing.Point(218, 24);
             this.getMotorPositionButton.Name = "getMotorPositionButton";
             this.getMotorPositionButton.Size = new System.Drawing.Size(118, 23);
             this.getMotorPositionButton.TabIndex = 42;
@@ -861,32 +921,10 @@
             this.getMotorPositionButton.UseVisualStyleBackColor = true;
             this.getMotorPositionButton.Click += new System.EventHandler(this.getMotorPositionButton_Click);
             // 
-            // averageOverEachMeasurementNumericUpDown
-            // 
-            this.averageOverEachMeasurementNumericUpDown.Location = new System.Drawing.Point(262, 50);
-            this.averageOverEachMeasurementNumericUpDown.Maximum = new decimal(new int[] {
-            100000,
-            0,
-            0,
-            0});
-            this.averageOverEachMeasurementNumericUpDown.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.averageOverEachMeasurementNumericUpDown.Name = "averageOverEachMeasurementNumericUpDown";
-            this.averageOverEachMeasurementNumericUpDown.Size = new System.Drawing.Size(54, 20);
-            this.averageOverEachMeasurementNumericUpDown.TabIndex = 25;
-            this.averageOverEachMeasurementNumericUpDown.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            // 
             // voltLabel
             // 
             this.voltLabel.AutoSize = true;
-            this.voltLabel.Location = new System.Drawing.Point(322, 74);
+            this.voltLabel.Location = new System.Drawing.Point(159, 172);
             this.voltLabel.Name = "voltLabel";
             this.voltLabel.Size = new System.Drawing.Size(14, 13);
             this.voltLabel.TabIndex = 41;
@@ -901,7 +939,7 @@
             0,
             0,
             655360});
-            this.trigLevelNumericDropDown.Location = new System.Drawing.Point(230, 71);
+            this.trigLevelNumericDropDown.Location = new System.Drawing.Point(58, 170);
             this.trigLevelNumericDropDown.Maximum = new decimal(new int[] {
             10,
             0,
@@ -921,7 +959,7 @@
             // triggerLevelLabel
             // 
             this.triggerLevelLabel.AutoSize = true;
-            this.triggerLevelLabel.Location = new System.Drawing.Point(182, 73);
+            this.triggerLevelLabel.Location = new System.Drawing.Point(7, 172);
             this.triggerLevelLabel.Name = "triggerLevelLabel";
             this.triggerLevelLabel.Size = new System.Drawing.Size(45, 13);
             this.triggerLevelLabel.TabIndex = 39;
@@ -1061,7 +1099,7 @@
             0,
             0,
             458752});
-            this.setTimeBaseNumericUpDown.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
+            this.setTimeBaseNumericUpDown.ValueChanged += new System.EventHandler(this.setTimeBaseNumericUpDown_ValueChanged);
             // 
             // mmLabel
             // 
@@ -1114,27 +1152,17 @@
             this.moveMotorNumericUpDown.Size = new System.Drawing.Size(91, 20);
             this.moveMotorNumericUpDown.TabIndex = 3;
             // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(274, 261);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 27;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
             // notificationTextBox
             // 
             this.notificationTextBox.Enabled = false;
-            this.notificationTextBox.Location = new System.Drawing.Point(364, 590);
+            this.notificationTextBox.Location = new System.Drawing.Point(352, 791);
             this.notificationTextBox.Name = "notificationTextBox";
             this.notificationTextBox.Size = new System.Drawing.Size(452, 20);
             this.notificationTextBox.TabIndex = 28;
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(192, 587);
+            this.progressBar1.Location = new System.Drawing.Point(180, 789);
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(166, 23);
             this.progressBar1.TabIndex = 29;
@@ -1142,23 +1170,47 @@
             // useTimebaseInVoltageAcquisitionCheckBox
             // 
             this.useTimebaseInVoltageAcquisitionCheckBox.AutoSize = true;
-            this.useTimebaseInVoltageAcquisitionCheckBox.Location = new System.Drawing.Point(15, 261);
+            this.useTimebaseInVoltageAcquisitionCheckBox.Location = new System.Drawing.Point(81, 414);
             this.useTimebaseInVoltageAcquisitionCheckBox.Name = "useTimebaseInVoltageAcquisitionCheckBox";
             this.useTimebaseInVoltageAcquisitionCheckBox.Size = new System.Drawing.Size(197, 17);
             this.useTimebaseInVoltageAcquisitionCheckBox.TabIndex = 44;
             this.useTimebaseInVoltageAcquisitionCheckBox.Text = "Use timebase for wait in voltage acq";
             this.useTimebaseInVoltageAcquisitionCheckBox.UseVisualStyleBackColor = true;
             // 
+            // useMaxVoltageInScopeTraceRadioButton
+            // 
+            this.useMaxVoltageInScopeTraceRadioButton.AutoSize = true;
+            this.useMaxVoltageInScopeTraceRadioButton.Location = new System.Drawing.Point(13, 253);
+            this.useMaxVoltageInScopeTraceRadioButton.Name = "useMaxVoltageInScopeTraceRadioButton";
+            this.useMaxVoltageInScopeTraceRadioButton.Size = new System.Drawing.Size(174, 17);
+            this.useMaxVoltageInScopeTraceRadioButton.TabIndex = 44;
+            this.useMaxVoltageInScopeTraceRadioButton.TabStop = true;
+            this.useMaxVoltageInScopeTraceRadioButton.Text = "Use max voltage in scope trace";
+            this.useMaxVoltageInScopeTraceRadioButton.UseVisualStyleBackColor = true;
+            this.useMaxVoltageInScopeTraceRadioButton.CheckedChanged += new System.EventHandler(this.useMaxVoltageInScopeTraceRadioButton_CheckedChanged);
+            // 
+            // useMeanVoltageInScopeTraceRadioButton
+            // 
+            this.useMeanVoltageInScopeTraceRadioButton.AutoSize = true;
+            this.useMeanVoltageInScopeTraceRadioButton.Checked = true;
+            this.useMeanVoltageInScopeTraceRadioButton.Location = new System.Drawing.Point(13, 276);
+            this.useMeanVoltageInScopeTraceRadioButton.Name = "useMeanVoltageInScopeTraceRadioButton";
+            this.useMeanVoltageInScopeTraceRadioButton.Size = new System.Drawing.Size(181, 17);
+            this.useMeanVoltageInScopeTraceRadioButton.TabIndex = 45;
+            this.useMeanVoltageInScopeTraceRadioButton.TabStop = true;
+            this.useMeanVoltageInScopeTraceRadioButton.Text = "Use mean voltage in scope trace";
+            this.useMeanVoltageInScopeTraceRadioButton.UseVisualStyleBackColor = true;
+            this.useMeanVoltageInScopeTraceRadioButton.CheckedChanged += new System.EventHandler(this.useMinVoltageInScopeTraceRadioButton_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(945, 623);
+            this.ClientSize = new System.Drawing.Size(945, 815);
             this.Controls.Add(this.useTimebaseInVoltageAcquisitionCheckBox);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.notificationTextBox);
-            this.Controls.Add(this.button1);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.MessagesLabel);
@@ -1178,11 +1230,13 @@
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.panel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.chart2)).EndInit();
             this.fitParametersGroupBox.ResumeLayout(false);
             this.fitParametersGroupBox.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.noScanPointsNumericUpDown)).EndInit();
             this.scanGroupBox.ResumeLayout(false);
             this.scanGroupBox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.averageOverEachMeasurementNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.noScanPointsNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.motorSpeedNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.timeBetweenStepsNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numberOfRunsNumericUpDown)).EndInit();
@@ -1191,7 +1245,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.chart1)).EndInit();
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.averageOverEachMeasurementNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trigLevelNumericDropDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.voltageOffsetNumericUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.voltsPerDivNumericUpDown)).EndInit();
@@ -1251,7 +1304,6 @@
         private System.Windows.Forms.GroupBox fitParametersGroupBox;
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.RadioButton discreteStepsRadioButton;
-        private System.Windows.Forms.Button button1;
         private System.Windows.Forms.TextBox notificationTextBox;
         private System.Windows.Forms.Label pulseDurationLabel;
         private System.Windows.Forms.TextBox pulseDurationsFileNameTextBox;
@@ -1288,6 +1340,10 @@
         private System.Windows.Forms.Button getMotorPositionButton;
         private System.Windows.Forms.Label AvgEachMeasurementOverLabel;
         private System.Windows.Forms.CheckBox useTimebaseInVoltageAcquisitionCheckBox;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chart2;
+        private System.Windows.Forms.Label triggeringLabel;
+        private System.Windows.Forms.RadioButton useMeanVoltageInScopeTraceRadioButton;
+        private System.Windows.Forms.RadioButton useMaxVoltageInScopeTraceRadioButton;
     }
 }
 

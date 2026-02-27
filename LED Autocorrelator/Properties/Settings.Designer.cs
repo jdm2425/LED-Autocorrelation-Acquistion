@@ -34,5 +34,77 @@ namespace LED_Autocorrelator.Properties {
                 this["KeepApplicationLog"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1E-07")]
+        public double timeBase {
+            get {
+                return ((double)(this["timeBase"]));
+            }
+            set {
+                this["timeBase"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.1")]
+        public double voltsPerDivisionChannel1 {
+            get {
+                return ((double)(this["voltsPerDivisionChannel1"]));
+            }
+            set {
+                this["voltsPerDivisionChannel1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public decimal motorStartPosition {
+            get {
+                return ((decimal)(this["motorStartPosition"]));
+            }
+            set {
+                this["motorStartPosition"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5")]
+        public decimal motorEndPosition {
+            get {
+                return ((decimal)(this["motorEndPosition"]));
+            }
+            set {
+                this["motorEndPosition"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int noScanPoints {
+            get {
+                return ((int)(this["noScanPoints"]));
+            }
+            set {
+                this["noScanPoints"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool fitGaussian {
+            get {
+                return ((bool)(this["fitGaussian"]));
+            }
+            set {
+                this["fitGaussian"] = value;
+            }
+        }
     }
 }
