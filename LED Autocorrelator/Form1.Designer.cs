@@ -29,13 +29,13 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea5 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend5 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea6 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend6 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.panel2 = new System.Windows.Forms.Panel();
             this.connectToScopeButton = new System.Windows.Forms.Button();
             this.enableMotorButton = new System.Windows.Forms.Button();
@@ -99,6 +99,8 @@
             this.BasicScanBackgroundWorker = new System.ComponentModel.BackgroundWorker();
             this.saveLocationFolderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.useMeanVoltageInScopeTraceRadioButton = new System.Windows.Forms.RadioButton();
+            this.useMaxVoltageInScopeTraceRadioButton = new System.Windows.Forms.RadioButton();
             this.triggeringLabel = new System.Windows.Forms.Label();
             this.getMotorPositionButton = new System.Windows.Forms.Button();
             this.voltLabel = new System.Windows.Forms.Label();
@@ -121,8 +123,7 @@
             this.notificationTextBox = new System.Windows.Forms.TextBox();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.useTimebaseInVoltageAcquisitionCheckBox = new System.Windows.Forms.CheckBox();
-            this.useMaxVoltageInScopeTraceRadioButton = new System.Windows.Forms.RadioButton();
-            this.useMeanVoltageInScopeTraceRadioButton = new System.Windows.Forms.RadioButton();
+            this.retrieveScopeTraceButton = new System.Windows.Forms.Button();
             this.panel2.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -348,16 +349,16 @@
             // 
             // chart2
             // 
-            chartArea5.Name = "ChartArea1";
-            this.chart2.ChartAreas.Add(chartArea5);
-            legend5.Name = "Legend1";
-            this.chart2.Legends.Add(legend5);
+            chartArea1.Name = "ChartArea1";
+            this.chart2.ChartAreas.Add(chartArea1);
+            legend1.Name = "Legend1";
+            this.chart2.Legends.Add(legend1);
             this.chart2.Location = new System.Drawing.Point(3, 270);
             this.chart2.Name = "chart2";
-            series5.ChartArea = "ChartArea1";
-            series5.Legend = "Legend1";
-            series5.Name = "Series1";
-            this.chart2.Series.Add(series5);
+            series1.ChartArea = "ChartArea1";
+            series1.Legend = "Legend1";
+            series1.Name = "Series1";
+            this.chart2.Series.Add(series1);
             this.chart2.Size = new System.Drawing.Size(547, 123);
             this.chart2.TabIndex = 25;
             this.chart2.Text = "chart2";
@@ -446,7 +447,6 @@
             this.scanGroupBox.Controls.Add(this.folderSaveDialogButton);
             this.scanGroupBox.Controls.Add(this.saveFolderPathLabel);
             this.scanGroupBox.Controls.Add(this.saveLocationTextBox);
-            this.scanGroupBox.Controls.Add(this.stopBasicScanButton);
             this.scanGroupBox.Controls.Add(this.numberOfRunsLabel);
             this.scanGroupBox.Controls.Add(this.numberOfRunsNumericUpDown);
             this.scanGroupBox.Controls.Add(this.runContinuouslyCheckBox);
@@ -460,6 +460,7 @@
             this.scanGroupBox.Controls.Add(this.motorEndPositionNumericUpDown);
             this.scanGroupBox.Controls.Add(this.motorStartPositionNumericUpDown);
             this.scanGroupBox.Controls.Add(this.startScanPositionLabel);
+            this.scanGroupBox.Controls.Add(this.stopBasicScanButton);
             this.scanGroupBox.FlatStyle = System.Windows.Forms.FlatStyle.System;
             this.scanGroupBox.Location = new System.Drawing.Point(7, 456);
             this.scanGroupBox.Name = "scanGroupBox";
@@ -671,7 +672,7 @@
             // stopBasicScanButton
             // 
             this.stopBasicScanButton.Enabled = false;
-            this.stopBasicScanButton.Location = new System.Drawing.Point(445, 184);
+            this.stopBasicScanButton.Location = new System.Drawing.Point(443, 182);
             this.stopBasicScanButton.Name = "stopBasicScanButton";
             this.stopBasicScanButton.Size = new System.Drawing.Size(75, 23);
             this.stopBasicScanButton.TabIndex = 14;
@@ -854,16 +855,16 @@
             // 
             // chart1
             // 
-            chartArea6.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea6);
-            legend6.Name = "Legend1";
-            this.chart1.Legends.Add(legend6);
+            chartArea2.Name = "ChartArea1";
+            this.chart1.ChartAreas.Add(chartArea2);
+            legend2.Name = "Legend1";
+            this.chart1.Legends.Add(legend2);
             this.chart1.Location = new System.Drawing.Point(3, 3);
             this.chart1.Name = "chart1";
-            series6.ChartArea = "ChartArea1";
-            series6.Legend = "Legend1";
-            series6.Name = "Series1";
-            this.chart1.Series.Add(series6);
+            series2.ChartArea = "ChartArea1";
+            series2.Legend = "Legend1";
+            series2.Name = "Series1";
+            this.chart1.Series.Add(series2);
             this.chart1.Size = new System.Drawing.Size(547, 245);
             this.chart1.TabIndex = 0;
             this.chart1.Text = "chart";
@@ -876,6 +877,7 @@
             // panel3
             // 
             this.panel3.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.panel3.Controls.Add(this.retrieveScopeTraceButton);
             this.panel3.Controls.Add(this.useMeanVoltageInScopeTraceRadioButton);
             this.panel3.Controls.Add(this.useMaxVoltageInScopeTraceRadioButton);
             this.panel3.Controls.Add(this.triggeringLabel);
@@ -901,6 +903,31 @@
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(346, 299);
             this.panel3.TabIndex = 26;
+            // 
+            // useMeanVoltageInScopeTraceRadioButton
+            // 
+            this.useMeanVoltageInScopeTraceRadioButton.AutoSize = true;
+            this.useMeanVoltageInScopeTraceRadioButton.Checked = true;
+            this.useMeanVoltageInScopeTraceRadioButton.Location = new System.Drawing.Point(13, 276);
+            this.useMeanVoltageInScopeTraceRadioButton.Name = "useMeanVoltageInScopeTraceRadioButton";
+            this.useMeanVoltageInScopeTraceRadioButton.Size = new System.Drawing.Size(181, 17);
+            this.useMeanVoltageInScopeTraceRadioButton.TabIndex = 45;
+            this.useMeanVoltageInScopeTraceRadioButton.TabStop = true;
+            this.useMeanVoltageInScopeTraceRadioButton.Text = "Use mean voltage in scope trace";
+            this.useMeanVoltageInScopeTraceRadioButton.UseVisualStyleBackColor = true;
+            this.useMeanVoltageInScopeTraceRadioButton.CheckedChanged += new System.EventHandler(this.useMinVoltageInScopeTraceRadioButton_CheckedChanged);
+            // 
+            // useMaxVoltageInScopeTraceRadioButton
+            // 
+            this.useMaxVoltageInScopeTraceRadioButton.AutoSize = true;
+            this.useMaxVoltageInScopeTraceRadioButton.Location = new System.Drawing.Point(13, 253);
+            this.useMaxVoltageInScopeTraceRadioButton.Name = "useMaxVoltageInScopeTraceRadioButton";
+            this.useMaxVoltageInScopeTraceRadioButton.Size = new System.Drawing.Size(174, 17);
+            this.useMaxVoltageInScopeTraceRadioButton.TabIndex = 44;
+            this.useMaxVoltageInScopeTraceRadioButton.TabStop = true;
+            this.useMaxVoltageInScopeTraceRadioButton.Text = "Use max voltage in scope trace";
+            this.useMaxVoltageInScopeTraceRadioButton.UseVisualStyleBackColor = true;
+            this.useMaxVoltageInScopeTraceRadioButton.CheckedChanged += new System.EventHandler(this.useMaxVoltageInScopeTraceRadioButton_CheckedChanged);
             // 
             // triggeringLabel
             // 
@@ -953,7 +980,6 @@
             this.trigLevelNumericDropDown.Name = "trigLevelNumericDropDown";
             this.trigLevelNumericDropDown.Size = new System.Drawing.Size(90, 20);
             this.trigLevelNumericDropDown.TabIndex = 40;
-            this.trigLevelNumericDropDown.Visible = false;
             this.trigLevelNumericDropDown.ValueChanged += new System.EventHandler(this.trigLevelNumericDropDown_ValueChanged);
             // 
             // triggerLevelLabel
@@ -1177,30 +1203,15 @@
             this.useTimebaseInVoltageAcquisitionCheckBox.Text = "Use timebase for wait in voltage acq";
             this.useTimebaseInVoltageAcquisitionCheckBox.UseVisualStyleBackColor = true;
             // 
-            // useMaxVoltageInScopeTraceRadioButton
+            // retrieveScopeTraceButton
             // 
-            this.useMaxVoltageInScopeTraceRadioButton.AutoSize = true;
-            this.useMaxVoltageInScopeTraceRadioButton.Location = new System.Drawing.Point(13, 253);
-            this.useMaxVoltageInScopeTraceRadioButton.Name = "useMaxVoltageInScopeTraceRadioButton";
-            this.useMaxVoltageInScopeTraceRadioButton.Size = new System.Drawing.Size(174, 17);
-            this.useMaxVoltageInScopeTraceRadioButton.TabIndex = 44;
-            this.useMaxVoltageInScopeTraceRadioButton.TabStop = true;
-            this.useMaxVoltageInScopeTraceRadioButton.Text = "Use max voltage in scope trace";
-            this.useMaxVoltageInScopeTraceRadioButton.UseVisualStyleBackColor = true;
-            this.useMaxVoltageInScopeTraceRadioButton.CheckedChanged += new System.EventHandler(this.useMaxVoltageInScopeTraceRadioButton_CheckedChanged);
-            // 
-            // useMeanVoltageInScopeTraceRadioButton
-            // 
-            this.useMeanVoltageInScopeTraceRadioButton.AutoSize = true;
-            this.useMeanVoltageInScopeTraceRadioButton.Checked = true;
-            this.useMeanVoltageInScopeTraceRadioButton.Location = new System.Drawing.Point(13, 276);
-            this.useMeanVoltageInScopeTraceRadioButton.Name = "useMeanVoltageInScopeTraceRadioButton";
-            this.useMeanVoltageInScopeTraceRadioButton.Size = new System.Drawing.Size(181, 17);
-            this.useMeanVoltageInScopeTraceRadioButton.TabIndex = 45;
-            this.useMeanVoltageInScopeTraceRadioButton.TabStop = true;
-            this.useMeanVoltageInScopeTraceRadioButton.Text = "Use mean voltage in scope trace";
-            this.useMeanVoltageInScopeTraceRadioButton.UseVisualStyleBackColor = true;
-            this.useMeanVoltageInScopeTraceRadioButton.CheckedChanged += new System.EventHandler(this.useMinVoltageInScopeTraceRadioButton_CheckedChanged);
+            this.retrieveScopeTraceButton.Location = new System.Drawing.Point(231, 238);
+            this.retrieveScopeTraceButton.Name = "retrieveScopeTraceButton";
+            this.retrieveScopeTraceButton.Size = new System.Drawing.Size(77, 55);
+            this.retrieveScopeTraceButton.TabIndex = 46;
+            this.retrieveScopeTraceButton.Text = "Retrieve trace!";
+            this.retrieveScopeTraceButton.UseVisualStyleBackColor = true;
+            this.retrieveScopeTraceButton.Click += new System.EventHandler(this.retrieveScopeTraceButton_Click);
             // 
             // Form1
             // 
@@ -1344,6 +1355,7 @@
         private System.Windows.Forms.Label triggeringLabel;
         private System.Windows.Forms.RadioButton useMeanVoltageInScopeTraceRadioButton;
         private System.Windows.Forms.RadioButton useMaxVoltageInScopeTraceRadioButton;
+        private System.Windows.Forms.Button retrieveScopeTraceButton;
     }
 }
 

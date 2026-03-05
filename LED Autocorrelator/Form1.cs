@@ -81,6 +81,7 @@ namespace LED_Autocorrelator
             {
                 LogMessage("Connecting to scope ...");
                 GetScopeName();
+                LogMessage($"Scope name: {scopeName}");
                 //LogMessage($"Scope found: {scopeName}");
                 scopeComboBox.Items.Add(scopeName);
                 if (scopeComboBox.Items.Count > 0)
@@ -860,6 +861,7 @@ namespace LED_Autocorrelator
             string unit = delayTuple.Item2;
             return $"{adjustedDelay.ToString("F2")} {unit}";
         }
+
         private bool CompleteScan()
         {
             NotificationMessage("Commencing scan ...");
@@ -868,7 +870,8 @@ namespace LED_Autocorrelator
             if (saveScanResultsCheckBox.Checked)
             {
                 SetFileName();
-                HeaderFile(fileName, "Position[mm], Voltage[V]");
+                // Include position uncertainty column (discrete scans will write 0 for uncertainty)
+                HeaderFile(fileName, "Position[mm], PositionUncertainty[mm], Voltage[V]");
             }
             Series scopeTrace = new Series("ScopeTrace")
             {
@@ -930,7 +933,7 @@ namespace LED_Autocorrelator
                             for (int j = 0; j < (int)(averageOverEachMeasurementNumericUpDown.Value); j++)
                             {
                                 double voltage_j;
-                                if (useMaxVoltageInScopeTraceRadioButton.Checked) 
+                                if (useMaxVoltageInScopeTraceRadioButton.Checked)
                                 {
                                     voltage_j = GetMaxVoltageFromScopeTrace();
                                 }
@@ -947,25 +950,32 @@ namespace LED_Autocorrelator
                             positions.Add(motorPosition);
                             if ((saveScanResultsCheckBox.Checked) && (File.Exists(fileName)))
                             {
-                                //LogMessage("HERE?");
-                                NotificationMessage("Printing to file");
-                                AddDataLineToFile(fileName, motorPosition, voltage);
+                                // Save with zero uncertainty for discrete mode
+                                try
+                                {
+                                    File.AppendAllText(fileName, $"{motorPosition:F6}, {0.0:F6}, {voltage:F6}\n");
+                                }
+                                catch (Exception ex)
+                                {
+                                    LogMessage($"Error saving discrete scan line: {ex.Message}");
+                                }
                             }
 
                             // Add the data point to the chart
                             this.Invoke((MethodInvoker)delegate
                             {
                                 scopeTrace.Points.AddXY(motorPosition, voltage);
+                                var dp = scopeTrace.Points[scopeTrace.Points.Count - 1];
+                                dp.ToolTip = $"±{0.0:F6} mm";
+                                // optional: show label if desired:
+                                // dp.Label = $"{motorPosition:F3}±{0.000:F3} mm";
                                 chart1.Invalidate();
                             });
 
                             // Allow the UI to update
                             Application.DoEvents();
                             //this.Invoke((MethodInvoker)delegate
-                            //{
-                            //    NotificationMessage($"Thread sleeping for {(int)timeBetweenStepsNumericUpDown.Value} ms");
-                            //    Thread.Sleep((int)timeBetweenStepsNumericUpDown.Value);
-                            //});
+                            //{ ... });
                         }
                         else
                         {
@@ -1035,20 +1045,207 @@ namespace LED_Autocorrelator
             }
             else // Continuous motion ! 
             {
-                //if (!SetMotorVelocity()) { ErrorMessage("Error setting motor velocity"); return false; }
-                //NotificationMessage("Moving to start position ...");
-                //MoveToAbsoluteTarget(new double[] { (double)motorStartPositionNumericUpDown.Value });
-                //while (IsMotorMoving())
-                //{
-                //    Thread.Sleep(10);
-                //}
+                LogMessage("ATTEMPTING CONTINUOUS SCAN");
+                // Ensure no division by zero
+                double requestedSpeed = (double)motorSpeedNumericUpDown.Value;
+                if (requestedSpeed == 0)
+                {
+                    ErrorMessage("Motor speed must be non-zero for continuous scan.");
+                    return false;
+                }
 
+                // determine direction sign so velocity has correct sign for MoveToAbsoluteTarget if necessary
+                double startPos = (double)motorStartPositionNumericUpDown.Value;
+                double endPos = (double)motorEndPositionNumericUpDown.Value;
+                double distance = endPos - startPos;
+                if (Math.Abs(distance) < 1e-12)
+                {
+                    ErrorMessage("Start and end positions are the same for continuous scan.");
+                    return false;
+                }
+                double velocityToSet = Math.Abs(requestedSpeed) * Math.Sign(distance); // signed velocity consistent with direction
 
-                LogMessage("Continuous motion has not been coded yet !");
-                // Set velocity
-                // calculate time between measurements
-                // Get measurements at interval and wait between measurements
+                if (!SetMotorVelocity(velocityToSet)) { ErrorMessage("Error setting motor velocity"); return false; }
+                LogMessage("Moving to start position ...");
+                MoveToAbsoluteTarget(new double[] { startPos });
+                while (IsMotorMoving())
+                {
+                    Thread.Sleep(10);
+                }
+
+                // compute time between measurement points based on spatial step size and velocity magnitude
+                int nPoints = (int)noScanPointsNumericUpDown.Value;
+                if (nPoints <= 0) { ErrorMessage("Number of scan points must be > 0"); return false; }
+
+                // motorStepSize already computed above: total distance / nPoints
+                double stepSize = motorStepSize; // mm per sample
+                double velocityMagnitude = Math.Abs(velocityToSet); // mm/s
+                                                                    // time between samples in milliseconds
+                double timeBetweenSamplesMs = (stepSize / velocityMagnitude) * 1000.0;
+                if (timeBetweenSamplesMs <= 1.0) timeBetweenSamplesMs = 1.0; // avoid zero or extremely small
+
+                LogMessage($"Continuous scan: stepSize={stepSize:F6} mm, velocity={velocityToSet:F6} mm/s, dt ~ {timeBetweenSamplesMs:F1} ms");
+
+                // Move to end position (continuous motion) and start sampling while motor is moving
+                LogMessage("Starting continuous motion to end position ...");
+                MoveToAbsoluteTarget(new double[] { endPos });
+
+                Stopwatch sampleStopwatch = new Stopwatch();
+                sampleStopwatch.Start();
+                int samplesTaken = 0;
+                int errorCountCont = 0;
+
+                // We will sample until we've taken nPoints+1 samples (to include both ends) or motor stops
+                while ((IsMotorMoving() || samplesTaken == 0))// && samplesTaken <= nPoints)
+                {
+                    long sampleStartTicks = sampleStopwatch.ElapsedMilliseconds;
+
+                    try
+                    {
+                        if (IsMotorConnected() && IsScopeConnected())
+                        {
+                            // record position before measurement
+                            double posBefore = GetMotorPosition();
+
+                            // acquire voltage averaging requested number of readings
+                            int nAvg = Math.Max(1, (int)averageOverEachMeasurementNumericUpDown.Value);
+                            double[] tempVoltages = new double[nAvg];
+                            for (int j = 0; j < nAvg; j++)
+                            {
+                                double vj;
+                                if (useMaxVoltageInScopeTraceRadioButton.Checked)
+                                {
+                                    vj = GetMaxVoltageFromScopeTrace();
+                                }
+                                else
+                                {
+                                    vj = GetMeanVoltageFromScopeTrace();
+                                }
+                                tempVoltages[j] = vj;
+                                // a small short delay can be added between rapid scope reads if needed:
+                                Thread.Sleep(1);
+                            }
+                            double voltage = tempVoltages.Average();
+
+                            // record position after measurement
+                            double posAfter = GetMotorPosition();
+
+                            // compute mean position and uncertainty
+                            double posMean = (posBefore + posAfter) / 2.0;
+                            double posUncertainty = Math.Abs(posAfter - posBefore) / 2.0;
+
+                            voltages.Add(voltage);
+                            positions.Add(posMean);
+
+                            // Save to file if requested (append with uncertainty)
+                            if ((saveScanResultsCheckBox.Checked))
+                            {
+                                try
+                                {
+                                    // ensure header exists
+                                    File.AppendAllText(fileName, $"{posMean:F6}, {posUncertainty:F6}, {voltage:F6}\n");
+                                }
+                                catch (Exception ex)
+                                {
+                                    LogMessage($"Error saving continuous scan line: {ex.Message}");
+                                }
+                            }
+
+                            // Plot the point and add uncertainty as tooltip/label for visualisation
+                            this.Invoke((MethodInvoker)delegate
+                            {
+                                scopeTrace.Points.AddXY(posMean, voltage);
+                                var dp = scopeTrace.Points[scopeTrace.Points.Count - 1];
+                                dp.ToolTip = $"±{0.0:F6} mm";
+                                // optionally show the label directly:
+                                // dp.Label = $"{posMean:F3} ± {posUncertainty:F3} mm";
+                                chart1.Invalidate();
+                            });
+
+                            samplesTaken++;
+                            Application.DoEvents();
+                        }
+                        else
+                        {
+                            LogMessage("Scope or motor not connecting: Skipping measurement & attempting to reconnect");
+                            NotificationMessage("Scope or motor not connecting: Skipping measurement & attempting to reconnect");
+                            try
+                            {
+                                if (IsMotorConnected() == false)
+                                {
+                                    ConnectToMotor(connectedUsbController);
+                                    if (IsMotorConnected())
+                                    {
+                                        NotificationMessage("Motor reconnected");
+                                    }
+                                    else { errorCountCont++; }
+                                }
+                                if (IsScopeConnected() == false)
+                                {
+                                    ConnectToScope(scopeName);
+                                    if (IsScopeConnected())
+                                    {
+                                        NotificationMessage("Scope reconnected");
+                                    }
+                                }
+                                else { errorCountCont++; }
+                                if (errorCountCont >= 3)
+                                {
+                                    ErrorMessage("Aborting scan ...");
+                                    NotificationMessage("Aborting scan ...");
+                                    return false;
+                                }
+                            }
+                            catch
+                            {
+                                ErrorMessage("Error taking measurement");
+                                errorCountCont++;
+                                if (errorCountCont >= 3)
+                                {
+                                    ErrorMessage("Aborting scan ...");
+                                    NotificationMessage("Aborting scan ...");
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ErrorMessage($"Error during continuous measurement: {ex.Message}");
+                        errorCountCont++;
+                        if (errorCountCont >= 3)
+                        {
+                            ErrorMessage("Aborting scan ...");
+                            NotificationMessage("Aborting scan ...");
+                            return false;
+                        }
+                    }
+
+                    // keep a roughly constant sampling interval in time corresponding to spatial step
+                    long sampleElapsed = sampleStopwatch.ElapsedMilliseconds - sampleStartTicks;
+                    double sleepMs = timeBetweenSamplesMs - sampleElapsed;
+                    if (sleepMs > 0)
+                    {
+                        // use smaller sleeps to keep UI responsive
+                        int toSleep = (int)Math.Min(100, Math.Round(sleepMs));
+                        Thread.Sleep(toSleep);
+                    }
+
+                    // break out if motor stopped and we've collected enough points
+                    if (!IsMotorMoving() && samplesTaken > nPoints) break;
+                }
+
+                // After loop, ensure motor has stopped or attempt to stop it cleanly
+                int motorStopWait = 0;
+                while (IsMotorMoving() && motorStopWait < 5000)
+                {
+                    Thread.Sleep(10);
+                    motorStopWait += 10;
+                }
+
+                LogMessage($"Continuous scan complete: samplesTaken={samplesTaken}");
             }
+
             progressBar1.BeginInvoke((Action)(() => { progressBar1.Value = 4 * 100 / numberOfProgressBarIncrementsInScan; }));
             try
             {
@@ -1137,6 +1334,285 @@ namespace LED_Autocorrelator
             //    Thread.Sleep((int)timeBetweenStepsNumericUpDown.Value);
             //});
         }
+        //private bool CompleteScan()
+        //{
+        //    NotificationMessage("Commencing scan ...");
+        //    progressBar1.BeginInvoke((Action)(() => { progressBar1.Value = 0; }));
+        //    progressBar1.BeginInvoke((Action)(() => { progressBar1.Value = 1 * 100 / numberOfProgressBarIncrementsInScan; }));
+        //    if (saveScanResultsCheckBox.Checked)
+        //    {
+        //        SetFileName();
+        //        HeaderFile(fileName, "Position[mm], Voltage[V]");
+        //    }
+        //    Series scopeTrace = new Series("ScopeTrace")
+        //    {
+        //        ChartType = SeriesChartType.Point, // Use points instead of a line
+        //        MarkerStyle = MarkerStyle.Cross,   // Set marker style to cross
+        //        MarkerSize = 10                    // Adjust size for visibility
+        //    };
+        //    this.Invoke((MethodInvoker)delegate
+        //    {
+        //        NotificationMessage("Configuring chart ...");
+        //        chart1.Series.Clear(); // Clear the chart at the beginning
+        //        chart1.Series.Add(scopeTrace);
+        //        // Customize chart
+        //        chart1.ChartAreas[0].AxisX.Title = "Motor Position [mm]";
+        //        chart1.ChartAreas[0].AxisY.Title = "Voltage [V]";
+        //        chart1.Legends.Clear(); // Remove the legend
+
+        //        // Format the X axis labels to 2 decimal places
+        //        chart1.ChartAreas[0].AxisX.LabelStyle.Format = "F2";
+        //    });
+
+        //    List<double> voltages = new List<double>(); // Initialize voltages
+        //    List<double> positions = new List<double>(); // Initialize positions
+        //    double motorStepSize = (double)((motorEndPositionNumericUpDown.Value - motorStartPositionNumericUpDown.Value) / noScanPointsNumericUpDown.Value);
+        //    progressBar1.BeginInvoke((Action)(() => { progressBar1.Value = 2 * 100 / numberOfProgressBarIncrementsInScan; }));
+        //    // Move to scan start position
+        //    NotificationMessage("Moving to start position ...");
+        //    MoveToAbsoluteTarget(new double[] { (double)motorStartPositionNumericUpDown.Value });
+        //    while (IsMotorMoving())
+        //    {
+        //        Thread.Sleep(10);
+        //    }
+        //    if (discreteStepsRadioButton.Checked)
+        //    {
+
+        //        // Begin taking measurements
+        //        int errorCount = 0;
+        //        for (double i = 0;
+        //             i <= (int)noScanPointsNumericUpDown.Value;
+        //             i += 1)
+        //        {
+        //            double newMotorPosition = (double)motorStartPositionNumericUpDown.Value + i * motorStepSize;
+        //            MoveToAbsoluteTarget(new double[] { newMotorPosition });
+        //            while (IsMotorMoving())
+        //            {
+        //                Thread.Sleep(10); // Wait for motor to stop
+        //            }
+        //            this.Invoke((MethodInvoker)delegate
+        //            {
+        //                NotificationMessage($"Thread sleeping for {(int)timeBetweenStepsNumericUpDown.Value} ms");
+        //                Thread.Sleep((int)timeBetweenStepsNumericUpDown.Value);
+        //            });
+        //            // Take a measurement
+        //            try
+        //            {
+        //                if (IsMotorConnected() && IsScopeConnected())
+        //                {
+        //                    double[] temp_voltages = new double[(int)(averageOverEachMeasurementNumericUpDown.Value)];
+        //                    for (int j = 0; j < (int)(averageOverEachMeasurementNumericUpDown.Value); j++)
+        //                    {
+        //                        double voltage_j;
+        //                        if (useMaxVoltageInScopeTraceRadioButton.Checked) 
+        //                        {
+        //                            voltage_j = GetMaxVoltageFromScopeTrace();
+        //                        }
+        //                        else
+        //                        {
+        //                            voltage_j = GetMeanVoltageFromScopeTrace();
+        //                        }
+        //                        temp_voltages[j] = voltage_j;
+        //                    }
+        //                    double voltage = temp_voltages.Average();
+        //                    //double voltage = GetMeanVoltageFromScopeTrace();  // temp_voltages.Average();
+        //                    voltages.Add(voltage); // Add voltage to the list
+        //                    double motorPosition = GetMotorPosition();
+        //                    positions.Add(motorPosition);
+        //                    if ((saveScanResultsCheckBox.Checked) && (File.Exists(fileName)))
+        //                    {
+        //                        //LogMessage("HERE?");
+        //                        NotificationMessage("Printing to file");
+        //                        AddDataLineToFile(fileName, motorPosition, voltage);
+        //                    }
+
+        //                    // Add the data point to the chart
+        //                    this.Invoke((MethodInvoker)delegate
+        //                    {
+        //                        scopeTrace.Points.AddXY(motorPosition, voltage);
+        //                        chart1.Invalidate();
+        //                    });
+
+        //                    // Allow the UI to update
+        //                    Application.DoEvents();
+        //                    //this.Invoke((MethodInvoker)delegate
+        //                    //{
+        //                    //    NotificationMessage($"Thread sleeping for {(int)timeBetweenStepsNumericUpDown.Value} ms");
+        //                    //    Thread.Sleep((int)timeBetweenStepsNumericUpDown.Value);
+        //                    //});
+        //                }
+        //                else
+        //                {
+        //                    LogMessage("Scope or motor not connecting: Skipping measurement & attempting to reconnect");
+        //                    NotificationMessage("Scope or motor not connecting: Skipping measurement & attempting to reconnect");
+        //                    try
+        //                    {
+        //                        if (IsMotorConnected() == false)
+        //                        {
+        //                            ConnectToMotor(connectedUsbController);
+        //                            if (IsMotorConnected())
+        //                            {
+        //                                NotificationMessage("Motor reconnected");
+        //                            }
+        //                            else { errorCount++; }
+        //                        }
+        //                        if (IsScopeConnected() == false)
+        //                        {
+        //                            ConnectToScope(scopeName);
+        //                            if (IsScopeConnected())
+        //                            {
+        //                                NotificationMessage("Scope reconnected");
+        //                            }
+        //                        }
+        //                        else { errorCount++; }
+        //                        if (errorCount >= 3)
+        //                        {
+        //                            ErrorMessage("Aborting scan ...");
+        //                            NotificationMessage("Aborting scan ...");
+        //                            return false;
+        //                        }
+        //                    }
+        //                    catch
+        //                    {
+        //                        ErrorMessage("Error taking measurement");
+        //                        errorCount++;
+        //                        if (errorCount >= 3)
+        //                        {
+        //                            ErrorMessage("Aborting scan ...");
+        //                            NotificationMessage("Aborting scan ...");
+        //                            return false;
+        //                        }
+        //                        ErrorMessage("Error taking measurement");
+        //                        errorCount++;
+        //                        if (errorCount >= 3)
+        //                        {
+        //                            ErrorMessage("Aborting scan ...");
+        //                            NotificationMessage("Aborting scan ...");
+        //                            return false;
+        //                        }
+        //                    }
+        //                }
+
+        //            }
+        //            catch
+        //            {
+        //                ErrorMessage("Error taking measurement");
+        //                errorCount++;
+        //                if (errorCount >= 3)
+        //                {
+        //                    ErrorMessage("Aborting scan ...");
+        //                    NotificationMessage("Aborting scan ...");
+        //                    return false;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    else // Continuous motion ! 
+        //    {
+        //        LogMessage("ATTEMPTING CONTINUTOUD");
+        //        if (!SetMotorVelocity((double)motorSpeedNumericUpDown.Value)) { ErrorMessage("Error setting motor velocity"); return false; }
+        //        LogMessage("Moving to start position ...");
+        //        MoveToAbsoluteTarget(new double[] { (double)motorStartPositionNumericUpDown.Value });
+        //        while (IsMotorMoving())
+        //        {
+        //            Thread.Sleep(10);
+        //        }
+        //        // Now move to end position and collect data
+
+
+        //        LogMessage("Continuous motion has not been coded yet !");
+        //        // Set velocity
+        //        // calculate time between measurements
+        //        // Get measurements at interval and wait between measurements
+        //    }
+        //    progressBar1.BeginInvoke((Action)(() => { progressBar1.Value = 4 * 100 / numberOfProgressBarIncrementsInScan; }));
+        //    try
+        //    {
+        //        // Fit Gaussian to the data
+        //        // Get the absolute path of the script (assuming it is in the same directory as the executable)
+        //        if (fitGaussianCheckBox.Checked)
+        //        {
+        //            string scriptName = "fit_gaussian.py"; // Change this to your actual script name
+        //            string scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, scriptName);
+        //            scriptPath = $"\"{scriptPath}\"";
+        //            LogMessage(scriptPath);
+        //            //string scriptPath = @"""C:\Users\jdm24\source\repos\LED Autocorrelator\Scripts\Fits\fit_gaussian.py""";+
+        //            string arguments = $"{fileName} {fitParametersFilePath}"; // Add any arguments if needed
+
+        //            double[] initialGuess = GetInitialGuess(positions.ToArray(), voltages.ToArray());
+        //            double[] fitParams = RunPythonScriptAndGetParams(scriptPath, positions.ToArray(), voltages.ToArray(), initialGuess);
+        //            //LogMessage("HERE_5");
+        //            string arrayAsString = string.Join(", ", fitParams.Select(x => x.ToString("F2")));
+        //            NotificationMessage($"Fit params {arrayAsString.ToString()}");
+        //            //RunPythonScript(scriptPath, arguments);
+        //            //var parameters = FitGaussian(positions.ToArray(), voltages.ToArray());
+
+        //            // Read the parameters from the file
+        //            //LogMessage("JD");
+        //            //double[] parameters = ReadParametersFromFile(fitParametersFilePath);
+
+        //            //// Parameters: A = amplitude, mu = mean, sigma = standard deviation
+
+        //            progressBar1.BeginInvoke((Action)(() => { progressBar1.Value = 7 * 100 / numberOfProgressBarIncrementsInScan; }));
+        //            if (!(fitParams.SequenceEqual(new double[] { -1, -1, -1 })))
+        //            {
+        //                double A = fitParams[0];
+        //                double mu = fitParams[1];
+        //                double sigma = fitParams[2];
+
+        //                //// Calculate the FWHM
+        //                double FWHM = 2 * Math.Sqrt(2 * Math.Log(2)) * sigma;
+        //                if (savePulseDurationCheckBox.Checked && File.Exists(pulseDurationFilename))
+        //                {
+        //                    //LogMessage("Here2");
+
+        //                    AddDataLineToFile(pulseDurationFilename, DateTime.Now.ToString("yyyy-MMM-dd HH:mm:ss"), 2 * FWHM * 1e-3 / 3e8 * 1 / Math.Sqrt(2));
+        //                }
+
+        //                //LogMessage($"FWHM: {FWHM}");
+        //                //LogMessage(PulseDurationFromFWHM_asString(FWHM));
+        //                this.Invoke((MethodInvoker)delegate
+        //                {
+        //                    pulseDurationLabel.Text = "Pulse duration: " + PulseDurationFromFWHM_asString(FWHM);
+        //                });
+
+        //                // Add the series for the fitted Gaussian curve
+        //                var fitSeries = new Series { Name = "Fitted Gaussian", ChartType = SeriesChartType.Line };
+
+        //                // Set the line color to red
+        //                fitSeries.BorderColor = System.Drawing.Color.Red;
+        //                fitSeries.BorderWidth = 2;  // Optionally adjust line width for better visibility
+
+        //                for (double x = positions[0]; x <= positions[positions.Count - 1]; x += 0.1)
+        //                {
+        //                    double y = A * Math.Exp(-Math.Pow(x - mu, 2) / (2 * Math.Pow(sigma, 2)));
+        //                    fitSeries.Points.AddXY(x, y);
+        //                }
+        //                // Add the data point to the chart
+        //                this.Invoke((MethodInvoker)delegate
+        //                {
+        //                    chart1.Series.Add(fitSeries);
+        //                    Application.DoEvents();
+        //                });
+        //                progressBar1.BeginInvoke((Action)(() => { progressBar1.Value = 9 * 100 / numberOfProgressBarIncrementsInScan; }));
+        //            }
+        //            else
+        //            {
+        //                NotificationMessage("Fit not possible");
+        //            }
+
+        //        }
+        //        progressBar1.BeginInvoke((Action)(() => { progressBar1.Value = 10 * 100 / numberOfProgressBarIncrementsInScan; }));
+        //        Application.DoEvents();
+        //        NotificationMessage("Scan complete");
+        //    }
+        //    catch (Exception e) { ErrorMessage($"{e}"); return false; }
+        //    return true;
+        //    //this.Invoke((MethodInvoker)delegate
+        //    //{
+        //    //    Thread.Sleep((int)timeBetweenStepsNumericUpDown.Value);
+        //    //});
+        //}
 
         //private bool CompleteScan()
         //{
@@ -1335,6 +1811,8 @@ namespace LED_Autocorrelator
                     //throw new GcsCommandError("Unable to set motor velocity");
                     return false;
                 }
+                // Check motor velocity
+                LogMessage("Motor velocity set?");
                 return true;
             }
             catch (Exception e)
@@ -1579,9 +2057,9 @@ namespace LED_Autocorrelator
                     .Where(v => !double.IsNaN(v)) // Remove invalid entries
                     .ToList();
                 //LogMessage(dataPoints.ToString());
-                double maxVoltage = dataPoints.Mean(); // Return the maximum value from the data points
+                double meanVoltage = dataPoints.Mean(); // Return the maximum value from the data points
                 //LogMessage("Max voltage: " + maxVoltage.ToString());
-                return maxVoltage;
+                return meanVoltage;
 
             }
             catch
@@ -2018,29 +2496,29 @@ namespace LED_Autocorrelator
 
         private void trigLevelNumericDropDown_ValueChanged(object sender, EventArgs e)
         {
-    //        if (IsScopeConnected())
-    //        {
-    //            try
-    //            {
-    //                io.RawIO.Write("CHAN1:OFFS " + voltageOffsetNumericUpDown.Value.ToString());
-    //                io.RawIO.Write("CHAN1:OFFS?");
-    //                var setVoltageOffset = io.RawIO.ReadString();
-    //                if (double.TryParse(setVoltageOffset, out double receivedValue) &&
-    //double.TryParse(voltageOffsetNumericUpDown.Value.ToString(), out double sentValue))
-    //                {
-    //                    NotificationMessage($"Voltage offset: {setVoltageOffset.Trim()} V");
-    //                }
-    //                else
-    //                {
-    //                    ErrorMessage("Not set voltage offset");
-    //                }
-    //            }
-    //            catch (Exception ex)
-    //            {
-    //                ErrorMessage(ex.ToString());
-    //            }
+            if (IsScopeConnected())
+            {
+                try
+                {
+                    io.RawIO.Write("TRIGger:A:LEVel1 " + trigLevelNumericDropDown.Value.ToString());
+                    io.RawIO.Write("TRIGger:A:LEVel1?");
+                    var trigLevel = io.RawIO.ReadString();
+                    if (double.TryParse(trigLevel, out double receivedValue) &&
+    double.TryParse(trigLevelNumericDropDown.Value.ToString(), out double sentValue))
+                    {
+                        NotificationMessage($"Trigger level set: {trigLevel.Trim()} V");
+                    }
+                    else
+                    {
+                        ErrorMessage("Not set voltage offset");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ErrorMessage(ex.ToString());
+                }
 
-    //        }
+            }
         }
 
         private void getMotorPositionButton_Click(object sender, EventArgs e)
@@ -2073,7 +2551,76 @@ namespace LED_Autocorrelator
         {
             useMaxVoltageInScopeTraceRadioButton.Checked = !useMeanVoltageInScopeTraceRadioButton.Checked;
         }
-    }
+
+        private void retrieveScopeTraceButton_Click(object sender, EventArgs e)
+        {
+            //io.RawIO.Write("TIM:SCAL 1E-7");
+            if (IsScopeConnected())
+            {
+                //io.Timeout = 20000; // 20 seconds
+                io.TerminationCharacterEnabled = true;
+                io.TerminationCharacter = (byte)'\n';
+                io.RawIO.Write("CHAN:DATA?");
+             
+                var idnResponse = io.RawIO.ReadString();
+                //LogMessage(idnResponse.ToString());
+                List<double> dataPoints = new List<double>(); // Initialize dataPoints
+                try
+                {
+                    string[] values = idnResponse.Split(','); // Split by commas
+                    dataPoints = values
+                        .Select(v => double.TryParse(v, out double result) ? result : double.NaN) // Convert to double safely
+                        .Where(v => !double.IsNaN(v)) // Remove invalid entries
+                        .ToList();
+                    //LogMessage(dataPoints.ToString());
+                    double maxVoltage = dataPoints.Max(); // Return the maximum value from the data points
+                    LogMessage("Max voltage: " + maxVoltage.ToString());
+
+                    Series scopeTrace = new Series("ScopeTrace")
+                    {
+                        ChartType = SeriesChartType.Line, // Use points instead of a line
+                                                          //MarkerStyle = MarkerStyle.Circle,   // Set marker style to cross
+                                                          //MarkerSize = 5                    // Adjust size for visibility
+                    };
+                    NotificationMessage("Configuring chart ...");
+                    chart2.Series.Clear(); // Clear the chart at the beginning
+                    chart2.Series.Add(scopeTrace);
+                    // Customize chart
+                    chart2.ChartAreas[0].AxisX.Title = "Time";
+                    chart2.ChartAreas[0].AxisY.Title = "Voltage [V]";
+                    chart2.Legends.Clear(); // Remove the legend
+
+                    // Format the X axis labels to 2 decimal places
+                    chart2.ChartAreas[0].AxisX.LabelStyle.Format = "F2";
+
+                    int N = dataPoints.Count;
+
+                    // Create time axis
+                    List<double> timeAxis = new List<double>(N);
+                    io.RawIO.Write("ACQ:SRAT?");
+                    double sampleRate = double.Parse(io.RawIO.ReadString(), CultureInfo.InvariantCulture);
+
+                    double dt = 1.0 / sampleRate;
+                    for (int i = 0; i < N; i++)
+                    {
+                        timeAxis.Add(i * dt);
+                    }
+                    for (int i = 0; i < N; i++)
+                    {
+                        scopeTrace.Points.AddXY(timeAxis[i], dataPoints[i]);
+                    }
+                    chart2.Invalidate();
+                    LogMessage("Number of points acquired: " + N);
+                }
+                catch
+                {
+                    ErrorMessage("Not converting comma separated string");
+                    //return double.NaN; // Return a default value in case of error
+                }
+            }
+                //return dataPoints.Max(); // Return the maximum value from the data points
+            }
+        }
 
     internal class GcsCommandError : Exception
     {
